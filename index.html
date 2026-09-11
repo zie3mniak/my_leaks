@@ -1,31 +1,642 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja strona</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #111;
-            color: white;
-            padding-top: 100px;
-        }
+<title>MyLeaks</title>
 
-        h1 {
-            font-size: 50px;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        p {
-            font-size: 20px;
-        }
-    </style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f2f5;
+    color: #1c1e21;
+}
+
+/* ===== GÓRNY PASEK ===== */
+
+header {
+    height: 60px;
+    background: #1877f2;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+.logo {
+    font-size: 27px;
+    font-weight: bold;
+    margin-right: 30px;
+}
+
+.search {
+    background: rgba(255,255,255,.2);
+    border: none;
+    outline: none;
+    color: white;
+    padding: 11px 16px;
+    border-radius: 22px;
+    width: 280px;
+}
+
+.search::placeholder {
+    color: #eee;
+}
+
+.nav {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+}
+
+.nav button {
+    border: none;
+    background: rgba(255,255,255,.15);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.nav button:hover {
+    background: rgba(255,255,255,.28);
+}
+
+/* ===== UKŁAD ===== */
+
+.container {
+    max-width: 1200px;
+    margin: 25px auto;
+    display: grid;
+    grid-template-columns: 240px 1fr 250px;
+    gap: 20px;
+}
+
+/* ===== LEWY PANEL ===== */
+
+.sidebar,
+.rightbar {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    height: fit-content;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 12px;
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #1877f2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.sidebar-item {
+    padding: 13px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.sidebar-item:hover {
+    background: #f0f2f5;
+}
+
+/* ===== POSTY ===== */
+
+.create-post {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    margin-bottom: 20px;
+}
+
+.create-top {
+    display: flex;
+    gap: 12px;
+}
+
+textarea {
+    width: 100%;
+    resize: none;
+    border: none;
+    outline: none;
+    background: #f0f2f5;
+    border-radius: 20px;
+    padding: 13px 17px;
+    font-size: 15px;
+}
+
+.post-button {
+    margin-top: 12px;
+    width: 100%;
+    background: #1877f2;
+    border: none;
+    color: white;
+    padding: 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.post-button:hover {
+    background: #166fe5;
+}
+
+.post {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.post-user {
+    font-weight: bold;
+}
+
+.post-time {
+    color: #65676b;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.post-text {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.post-actions {
+    display: flex;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    gap: 8px;
+}
+
+.action {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.action:hover {
+    background: #f0f2f5;
+}
+
+.liked {
+    color: #1877f2;
+    font-weight: bold;
+}
+
+.comment-box {
+    display: none;
+    margin-top: 12px;
+}
+
+.comment-box input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    outline: none;
+}
+
+.comments {
+    margin-top: 10px;
+}
+
+.comment {
+    background: #f0f2f5;
+    padding: 8px 12px;
+    border-radius: 15px;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+/* ===== PRAWA STRONA ===== */
+
+.rightbar h3 {
+    margin-bottom: 15px;
+}
+
+.friend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+}
+
+.online {
+    width: 10px;
+    height: 10px;
+    background: #31a24c;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width: 900px) {
+    .container {
+        grid-template-columns: 200px 1fr;
+        padding: 0 12px;
+    }
+
+    .rightbar {
+        display: none;
+    }
+}
+
+@media(max-width: 650px) {
+    header {
+        padding: 0 12px;
+    }
+
+    .logo {
+        margin-right: 10px;
+    }
+
+    .search {
+        width: 140px;
+    }
+
+    .nav button {
+        display: none;
+    }
+
+    .container {
+        display: block;
+        margin-top: 12px;
+    }
+
+    .sidebar {
+        display: none;
+    }
+}
+</style>
 </head>
 
 <body>
-    <h1>Witaj! 👋</h1>
-    <p>Moja pierwsza strona internetowa działa!</p>
+
+<header>
+
+    <div class="logo">MyLeaks</div>
+
+    <input
+        class="search"
+        type="text"
+        placeholder="Szukaj..."
+        oninput="searchPosts(this.value)"
+    >
+
+    <div class="nav">
+        <button onclick="scrollToTop()">🏠 Strona główna</button>
+        <button onclick="alert('Profil użytkownika')">👤 Profil</button>
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <!-- LEWY PANEL -->
+
+    <aside class="sidebar">
+
+        <div class="profile-mini">
+            <div class="avatar">M</div>
+
+            <div>
+                <b>Użytkownik</b>
+                <small>Twój profil</small>
+            </div>
+        </div>
+
+        <div class="sidebar-item">🏠 Aktualności</div>
+        <div class="sidebar-item">👥 Znajomi</div>
+        <div class="sidebar-item">💬 Wiadomości</div>
+        <div class="sidebar-item">🔔 Powiadomienia</div>
+        <div class="sidebar-item">⚙️ Ustawienia</div>
+
+    </aside>
+
+
+    <!-- GŁÓWNA CZĘŚĆ -->
+
+    <main>
+
+        <section class="create-post">
+
+            <div class="create-top">
+
+                <div class="avatar">M</div>
+
+                <textarea
+                    id="postText"
+                    rows="2"
+                    placeholder="O czym teraz myślisz?"
+                ></textarea>
+
+            </div>
+
+            <button class="post-button" onclick="addPost()">
+                Opublikuj
+            </button>
+
+        </section>
+
+
+        <section id="posts"></section>
+
+    </main>
+
+
+    <!-- PRAWY PANEL -->
+
+    <aside class="rightbar">
+
+        <h3>Znajomi online</h3>
+
+        <div class="friend">
+            <div class="avatar">K</div>
+            <span>Kamil</span>
+            <div class="online"></div>
+        </div>
+
+        <div class="friend">
+            <div class="avatar">A</div>
+            <span>Adam</span>
+            <div class="online"></div>
+        </div>
+
+        <div class="friend">
+            <div class="avatar">M</div>
+            <span>Michał</span>
+            <div class="online"></div>
+        </div>
+
+    </aside>
+
+</div>
+
+
+<script>
+
+let posts = JSON.parse(localStorage.getItem("myleaks_posts")) || [
+    {
+        user: "MyLeaks",
+        text: "Witaj na MyLeaks! 🎉 To jest pierwszy post.",
+        likes: 3,
+        liked: false,
+        comments: []
+    }
+];
+
+
+function savePosts() {
+    localStorage.setItem("myleaks_posts", JSON.stringify(posts));
+}
+
+
+function displayPosts(list = posts) {
+
+    const container = document.getElementById("posts");
+
+    container.innerHTML = "";
+
+    list.forEach((post, index) => {
+
+        const article = document.createElement("article");
+
+        article.className = "post";
+
+        article.innerHTML = `
+
+            <div class="post-header">
+
+                <div class="avatar">
+                    ${post.user.charAt(0)}
+                </div>
+
+                <div>
+                    <div class="post-user">${post.user}</div>
+                    <div class="post-time">teraz</div>
+                </div>
+
+            </div>
+
+            <div class="post-text">
+                ${escapeHTML(post.text)}
+            </div>
+
+            <div class="post-actions">
+
+                <button
+                    class="action ${post.liked ? "liked" : ""}"
+                    onclick="likePost(${index})"
+                >
+                    👍 Lubię to (${post.likes})
+                </button>
+
+                <button
+                    class="action"
+                    onclick="toggleComments(${index})"
+                >
+                    💬 Komentarze
+                </button>
+
+            </div>
+
+            <div
+                class="comment-box"
+                id="commentBox${index}"
+            >
+
+                <input
+                    type="text"
+                    id="commentInput${index}"
+                    placeholder="Napisz komentarz..."
+                    onkeydown="commentKey(event, ${index})"
+                >
+
+            </div>
+
+            <div
+                class="comments"
+                id="comments${index}"
+            >
+                ${renderComments(post.comments)}
+            </div>
+        `;
+
+        container.appendChild(article);
+    });
+}
+
+
+function renderComments(comments) {
+
+    return comments.map(comment => `
+        <div class="comment">
+            <b>Użytkownik:</b> ${escapeHTML(comment)}
+        </div>
+    `).join("");
+}
+
+
+function addPost() {
+
+    const input = document.getElementById("postText");
+
+    const text = input.value.trim();
+
+    if (!text) {
+        alert("Napisz coś przed opublikowaniem 🙂");
+        return;
+    }
+
+    posts.unshift({
+        user: "Użytkownik",
+        text: text,
+        likes: 0,
+        liked: false,
+        comments: []
+    });
+
+    input.value = "";
+
+    savePosts();
+
+    displayPosts();
+}
+
+
+function likePost(index) {
+
+    if (posts[index].liked) {
+
+        posts[index].likes--;
+        posts[index].liked = false;
+
+    } else {
+
+        posts[index].likes++;
+        posts[index].liked = true;
+
+    }
+
+    savePosts();
+
+    displayPosts();
+}
+
+
+function toggleComments(index) {
+
+    const box = document.getElementById("commentBox" + index);
+
+    box.style.display =
+        box.style.display === "block"
+        ? "none"
+        : "block";
+}
+
+
+function commentKey(event, index) {
+
+    if (event.key !== "Enter") return;
+
+    const input = document.getElementById(
+        "commentInput" + index
+    );
+
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    posts[index].comments.push(text);
+
+    input.value = "";
+
+    savePosts();
+
+    displayPosts();
+}
+
+
+function searchPosts(query) {
+
+    query = query.toLowerCase();
+
+    const filtered = posts.filter(post =>
+        post.text.toLowerCase().includes(query) ||
+        post.user.toLowerCase().includes(query)
+    );
+
+    displayPosts(filtered);
+}
+
+
+function scrollToTop() {
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+function escapeHTML(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+}
+
+
+displayPosts();
+
+</script>
+
 </body>
 </html>
