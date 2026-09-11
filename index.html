@@ -41,7 +41,8 @@
       box-shadow: 0 2px 8px #0001;
     }
 
-    input, textarea {
+    input,
+    textarea {
       width: 100%;
       padding: 12px;
       margin: 7px 0;
@@ -74,7 +75,9 @@
       background: #555;
     }
 
-    .post {
+    .post,
+    .friend,
+    .message {
       background: white;
       padding: 18px;
       border-radius: 10px;
@@ -82,10 +85,15 @@
       box-shadow: 0 2px 8px #0001;
     }
 
-    .post-date {
+    .post-date,
+    .message-date {
       color: #777;
       font-size: 12px;
       margin-bottom: 10px;
+    }
+
+    .message {
+      border-left: 4px solid #1877f2;
     }
 
     #status {
@@ -100,6 +108,14 @@
     h2 {
       margin-top: 0;
     }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
   </style>
 </head>
 
@@ -113,6 +129,7 @@
 
   <!-- LOGOWANIE -->
   <div class="box" id="authBox">
+
     <h2>Logowanie</h2>
 
     <input
@@ -127,23 +144,36 @@
       placeholder="Hasło"
     >
 
-    <button onclick="login()">Zaloguj się</button>
-    <button onclick="register()">Załóż konto</button>
+    <button id="loginBtn">
+      Zaloguj się
+    </button>
+
+    <button id="registerBtn">
+      Załóż konto
+    </button>
 
     <div id="status"></div>
+
   </div>
+
 
   <!-- PANEL UŻYTKOWNIKA -->
   <div class="box hidden" id="userBox">
+
     <h2>Witaj! 👋</h2>
 
     <p id="userEmail"></p>
 
-    <button class="logout" onclick="logout()">Wyloguj się</button>
+    <button class="logout" id="logoutBtn">
+      Wyloguj się
+    </button>
+
   </div>
+
 
   <!-- DODAWANIE POSTA -->
   <div class="box hidden" id="postBox">
+
     <h2>Dodaj post</h2>
 
     <textarea
@@ -151,8 +181,12 @@
       placeholder="Co chcesz napisać?"
     ></textarea>
 
-    <button onclick="addPost()">Opublikuj</button>
+    <button id="addPostBtn">
+      Opublikuj
+    </button>
+
   </div>
+
 
   <!-- POSTY -->
   <h2>Posty</h2>
@@ -161,12 +195,64 @@
     Ładowanie postów...
   </div>
 
+
+  <!-- ZNAJOMI -->
+  <div class="box hidden" id="friendsBox">
+
+    <h2>👥 Znajomi</h2>
+
+    <input
+      id="friendEmail"
+      type="email"
+      placeholder="Email użytkownika"
+    >
+
+    <button id="addFriendBtn">
+      Dodaj znajomego
+    </button>
+
+    <div id="friendsList">
+      Ładowanie znajomych...
+    </div>
+
+  </div>
+
+
+  <!-- WIADOMOŚCI -->
+  <div class="box hidden" id="messagesBox">
+
+    <h2>💬 Prywatne wiadomości</h2>
+
+    <input
+      id="messageTo"
+      type="email"
+      placeholder="Email odbiorcy"
+    >
+
+    <input
+      id="messageText"
+      type="text"
+      placeholder="Napisz wiadomość..."
+    >
+
+    <button id="sendMessageBtn">
+      Wyślij
+    </button>
+
+    <div id="messagesList">
+      Ładowanie wiadomości...
+    </div>
+
+  </div>
+
 </div>
 
+
 <script>
-  // ==============================
+
+  // =========================================
   // SUPABASE
-  // ==============================
+  // =========================================
 
   const SUPABASE_URL =
     "https://wenzjyhwntdiytgjgpkp.supabase.co";
@@ -181,18 +267,92 @@
     );
 
 
-  // ==============================
-  // STATUS
-  // ==============================
+  // =========================================
+  // ELEMENTY
+  // =========================================
 
-  function showStatus(message) {
-    document.getElementById("status").textContent = message;
+  const authBox =
+    document.getElementById("authBox");
+
+  const userBox =
+    document.getElementById("userBox");
+
+  const postBox =
+    document.getElementById("postBox");
+
+  const friendsBox =
+    document.getElementById("friendsBox");
+
+  const messagesBox =
+    document.getElementById("messagesBox");
+
+  const userEmail =
+    document.getElementById("userEmail");
+
+  const status =
+    document.getElementById("status");
+
+
+  // =========================================
+  // STATUS
+  // =========================================
+
+  function showStatus(text, type = "") {
+
+    status.textContent = text;
+
+    status.className = type;
+
   }
 
 
-  // ==============================
+  // =========================================
+  // AKTUALIZACJA INTERFEJSU
+  // =========================================
+
+  function updateUI(user) {
+
+    if (user) {
+
+      authBox.classList.add("hidden");
+
+      userBox.classList.remove("hidden");
+
+      postBox.classList.remove("hidden");
+
+      friendsBox.classList.remove("hidden");
+
+      messagesBox.classList.remove("hidden");
+
+      userEmail.textContent =
+        "Zalogowany jako: " + user.email;
+
+      loadPosts();
+      loadFriends();
+      loadMessages();
+
+    } else {
+
+      authBox.classList.remove("hidden");
+
+      userBox.classList.add("hidden");
+
+      postBox.classList.add("hidden");
+
+      friendsBox.classList.add("hidden");
+
+      messagesBox.classList.add("hidden");
+
+      userEmail.textContent = "";
+
+    }
+
+  }
+
+
+  // =========================================
   // REJESTRACJA
-  // ==============================
+  // =========================================
 
   async function register() {
 
@@ -202,38 +362,63 @@
     const password =
       document.getElementById("password").value;
 
+
     if (!email || !password) {
-      showStatus("Wpisz email i hasło.");
+
+      showStatus(
+        "Wpisz email i hasło.",
+        "error"
+      );
+
       return;
     }
 
+
     if (password.length < 6) {
-      showStatus("Hasło musi mieć minimum 6 znaków.");
+
+      showStatus(
+        "Hasło musi mieć minimum 6 znaków.",
+        "error"
+      );
+
       return;
     }
+
 
     showStatus("Tworzenie konta...");
 
-    const { data, error } =
+
+    const { error } =
       await supabaseClient.auth.signUp({
+
         email: email,
         password: password
+
       });
 
+
     if (error) {
-      showStatus("Błąd: " + error.message);
+
+      showStatus(
+        "Błąd: " + error.message,
+        "error"
+      );
+
       return;
     }
 
+
     showStatus(
-      "Konto utworzone! Jeśli trzeba, sprawdź email i potwierdź konto."
+      "Konto utworzone! Jeśli trzeba, potwierdź email.",
+      "success"
     );
+
   }
 
 
-  // ==============================
+  // =========================================
   // LOGOWANIE
-  // ==============================
+  // =========================================
 
   async function login() {
 
@@ -243,153 +428,182 @@
     const password =
       document.getElementById("password").value;
 
+
     if (!email || !password) {
-      showStatus("Wpisz email i hasło.");
+
+      showStatus(
+        "Wpisz email i hasło.",
+        "error"
+      );
+
       return;
     }
+
 
     showStatus("Logowanie...");
 
+
     const { data, error } =
       await supabaseClient.auth.signInWithPassword({
+
         email: email,
         password: password
+
       });
 
+
     if (error) {
-      showStatus("Błąd logowania: " + error.message);
+
+      showStatus(
+        "Błąd logowania: " + error.message,
+        "error"
+      );
+
       return;
     }
 
-    showStatus("Zalogowano!");
+
+    showStatus(
+      "Zalogowano!",
+      "success"
+    );
+
+
     updateUI(data.user);
+
   }
 
 
-  // ==============================
+  // =========================================
   // WYLOGOWANIE
-  // ==============================
+  // =========================================
 
   async function logout() {
 
     await supabaseClient.auth.signOut();
 
     updateUI(null);
+
   }
 
 
-  // ==============================
-  // INTERFEJS
-  // ==============================
-
-  function updateUI(user) {
-
-    const authBox =
-      document.getElementById("authBox");
-
-    const userBox =
-      document.getElementById("userBox");
-
-    const postBox =
-      document.getElementById("postBox");
-
-    const userEmail =
-      document.getElementById("userEmail");
-
-    if (user) {
-
-      authBox.classList.add("hidden");
-      userBox.classList.remove("hidden");
-      postBox.classList.remove("hidden");
-
-      userEmail.textContent =
-        "Zalogowany jako: " + user.email;
-
-    } else {
-
-      authBox.classList.remove("hidden");
-      userBox.classList.add("hidden");
-      postBox.classList.add("hidden");
-
-      userEmail.textContent = "";
-    }
-  }
-
-
-  // ==============================
+  // =========================================
   // DODAWANIE POSTA
-  // ==============================
+  // =========================================
 
   async function addPost() {
 
     const content =
-      document.getElementById("postContent").value.trim();
+      document
+        .getElementById("postContent")
+        .value
+        .trim();
+
 
     if (!content) {
-      alert("Napisz coś przed opublikowaniem.");
+
+      alert(
+        "Napisz coś przed opublikowaniem."
+      );
+
       return;
     }
+
 
     const {
       data: { user }
-    } = await supabaseClient.auth.getUser();
+    } =
+      await supabaseClient.auth.getUser();
+
 
     if (!user) {
-      alert("Musisz być zalogowany.");
+
+      alert(
+        "Musisz być zalogowany."
+      );
+
       return;
     }
+
 
     const { error } =
       await supabaseClient
         .from("posts")
         .insert({
+
           content: content
+
         });
 
+
     if (error) {
-      alert("Nie udało się dodać posta: " + error.message);
+
+      alert(
+        "Nie udało się dodać posta: " +
+        error.message
+      );
+
       return;
     }
 
-    document.getElementById("postContent").value = "";
+
+    document
+      .getElementById("postContent")
+      .value = "";
+
 
     loadPosts();
+
   }
 
 
-  // ==============================
+  // =========================================
   // POBIERANIE POSTÓW
-  // ==============================
+  // =========================================
 
   async function loadPosts() {
 
     const postsElement =
       document.getElementById("posts");
 
+
     const {
       data,
       error
-    } = await supabaseClient
-      .from("posts")
-      .select("id, content, created_at")
-      .order("created_at", {
-        ascending: false
-      });
+    } =
+      await supabaseClient
+        .from("posts")
+        .select(
+          "id, content, created_at"
+        )
+        .order(
+          "created_at",
+          { ascending: false }
+        );
+
 
     if (error) {
+
       postsElement.textContent =
         "Nie udało się załadować postów.";
+
       console.error(error);
+
       return;
     }
+
 
     if (!data || data.length === 0) {
+
       postsElement.textContent =
         "Nie ma jeszcze żadnych postów.";
+
       return;
     }
 
+
     postsElement.innerHTML = "";
+
 
     data.forEach(post => {
 
@@ -398,15 +612,18 @@
 
       postElement.className = "post";
 
-      const date =
-        new Date(post.created_at)
-          .toLocaleString("pl-PL");
 
       const dateElement =
         document.createElement("div");
 
-      dateElement.className = "post-date";
-      dateElement.textContent = date;
+      dateElement.className =
+        "post-date";
+
+      dateElement.textContent =
+        new Date(
+          post.created_at
+        ).toLocaleString("pl-PL");
+
 
       const contentElement =
         document.createElement("div");
@@ -414,53 +631,545 @@
       contentElement.textContent =
         post.content;
 
-      postElement.appendChild(dateElement);
-      postElement.appendChild(contentElement);
 
-      postsElement.appendChild(postElement);
+      postElement.appendChild(
+        dateElement
+      );
+
+      postElement.appendChild(
+        contentElement
+      );
+
+
+      postsElement.appendChild(
+        postElement
+      );
+
     });
+
   }
 
 
-  // ==============================
+  // =========================================
+  // DODAWANIE ZNAJOMEGO
+  // =========================================
+
+  async function addFriend() {
+
+    const email =
+      document
+        .getElementById("friendEmail")
+        .value
+        .trim();
+
+
+    if (!email) {
+
+      alert(
+        "Wpisz email użytkownika."
+      );
+
+      return;
+    }
+
+
+    const {
+      data: { user }
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (!user) {
+
+      alert(
+        "Najpierw się zaloguj."
+      );
+
+      return;
+    }
+
+
+    // Szukanie użytkownika
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .rpc(
+          "find_user_by_email",
+          {
+            search_email: email
+          }
+        );
+
+
+    if (error) {
+
+      alert(
+        "Nie można znaleźć użytkownika: " +
+        error.message
+      );
+
+      return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+      alert(
+        "Nie znaleziono użytkownika o takim emailu."
+      );
+
+      return;
+    }
+
+
+    const friendId =
+      data[0].id;
+
+
+    if (friendId === user.id) {
+
+      alert(
+        "Nie możesz dodać samego siebie."
+      );
+
+      return;
+    }
+
+
+    const {
+      error: insertError
+    } =
+      await supabaseClient
+        .from("friendships")
+        .insert({
+
+          requester: user.id,
+
+          addressee: friendId,
+
+          status: "pending"
+
+        });
+
+
+    if (insertError) {
+
+      alert(
+        "Nie udało się wysłać zaproszenia: " +
+        insertError.message
+      );
+
+      return;
+    }
+
+
+    alert(
+      "Zaproszenie wysłane! 👥"
+    );
+
+
+    document
+      .getElementById("friendEmail")
+      .value = "";
+
+
+    loadFriends();
+
+  }
+
+
+  // =========================================
+  // POBIERANIE ZNAJOMYCH
+  // =========================================
+
+  async function loadFriends() {
+
+    const list =
+      document.getElementById(
+        "friendsList"
+      );
+
+
+    const {
+      data: { user }
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (!user) return;
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("friendships")
+        .select(
+          "requester, addressee, status"
+        )
+        .or(
+          `requester.eq.${user.id},addressee.eq.${user.id}`
+        );
+
+
+    if (error) {
+
+      list.textContent =
+        "Nie udało się pobrać znajomych.";
+
+      console.error(error);
+
+      return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+      list.textContent =
+        "Nie masz jeszcze znajomych.";
+
+      return;
+    }
+
+
+    list.innerHTML = "";
+
+
+    data.forEach(friend => {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "friend";
+
+
+      const otherId =
+        friend.requester === user.id
+          ? friend.addressee
+          : friend.requester;
+
+
+      div.textContent =
+        "ID: " +
+        otherId +
+        " — " +
+        friend.status;
+
+
+      list.appendChild(div);
+
+    });
+
+  }
+
+
+  // =========================================
+  // WYSYŁANIE WIADOMOŚCI
+  // =========================================
+
+  async function sendMessage() {
+
+    const receiverEmail =
+      document
+        .getElementById("messageTo")
+        .value
+        .trim();
+
+
+    const text =
+      document
+        .getElementById("messageText")
+        .value
+        .trim();
+
+
+    if (!receiverEmail || !text) {
+
+      alert(
+        "Wpisz email odbiorcy i wiadomość."
+      );
+
+      return;
+    }
+
+
+    const {
+      data: { user }
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (!user) {
+
+      alert(
+        "Musisz być zalogowany."
+      );
+
+      return;
+    }
+
+
+    // Znajdź odbiorcę
+    const {
+      data: receiver,
+      error: receiverError
+    } =
+      await supabaseClient
+        .rpc(
+          "find_user_by_email",
+          {
+            search_email: receiverEmail
+          }
+        );
+
+
+    if (
+      receiverError ||
+      !receiver ||
+      receiver.length === 0
+    ) {
+
+      alert(
+        "Nie znaleziono odbiorcy."
+      );
+
+      return;
+    }
+
+
+    const receiverId =
+      receiver[0].id;
+
+
+    if (receiverId === user.id) {
+
+      alert(
+        "Nie możesz wysłać wiadomości do siebie."
+      );
+
+      return;
+    }
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("messages")
+        .insert({
+
+          sender_id: user.id,
+
+          receiver_id: receiverId,
+
+          content: text
+
+        });
+
+
+    if (error) {
+
+      alert(
+        "Nie udało się wysłać wiadomości: " +
+        error.message
+      );
+
+      return;
+    }
+
+
+    document
+      .getElementById("messageText")
+      .value = "";
+
+
+    loadMessages();
+
+  }
+
+
+  // =========================================
+  // POBIERANIE WIADOMOŚCI
+  // =========================================
+
+  async function loadMessages() {
+
+    const list =
+      document.getElementById(
+        "messagesList"
+      );
+
+
+    const {
+      data: { user }
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (!user) return;
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("messages")
+        .select(
+          "sender_id, receiver_id, content, created_at"
+        )
+        .or(
+          `sender_id.eq.${user.id},receiver_id.eq.${user.id}`
+        )
+        .order(
+          "created_at",
+          { ascending: true }
+        );
+
+
+    if (error) {
+
+      list.textContent =
+        "Nie udało się załadować wiadomości.";
+
+      console.error(error);
+
+      return;
+    }
+
+
+    if (!data || data.length === 0) {
+
+      list.textContent =
+        "Nie masz jeszcze wiadomości.";
+
+      return;
+    }
+
+
+    list.innerHTML = "";
+
+
+    data.forEach(message => {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "message";
+
+
+      const date =
+        document.createElement("div");
+
+      date.className =
+        "message-date";
+
+      date.textContent =
+        new Date(
+          message.created_at
+        ).toLocaleString("pl-PL");
+
+
+      const content =
+        document.createElement("div");
+
+      content.textContent =
+        message.content;
+
+
+      div.appendChild(date);
+
+      div.appendChild(content);
+
+
+      list.appendChild(div);
+
+    });
+
+  }
+
+
+  // =========================================
+  // PRZYCISKI
+  // =========================================
+
+  document
+    .getElementById("loginBtn")
+    .addEventListener(
+      "click",
+      login
+    );
+
+
+  document
+    .getElementById("registerBtn")
+    .addEventListener(
+      "click",
+      register
+    );
+
+
+  document
+    .getElementById("logoutBtn")
+    .addEventListener(
+      "click",
+      logout
+    );
+
+
+  document
+    .getElementById("addPostBtn")
+    .addEventListener(
+      "click",
+      addPost
+    );
+
+
+  document
+    .getElementById("addFriendBtn")
+    .addEventListener(
+      "click",
+      addFriend
+    );
+
+
+  document
+    .getElementById("sendMessageBtn")
+    .addEventListener(
+      "click",
+      sendMessage
+    );
+
+
+  // =========================================
   // SPRAWDZENIE SESJI
-  // ==============================
+  // =========================================
 
   async function checkUser() {
 
     const {
       data: { user }
-    } = await supabaseClient.auth.getUser();
+    } =
+      await supabaseClient.auth.getUser();
+
 
     updateUI(user);
+
   }
 
 
-  // ==============================
+  // =========================================
   // START
-  // ==============================
+  // =========================================
 
   checkUser();
-  loadPosts();
 
 </script>
-<!-- ZNAJOMI I WIADOMOŚCI -->
-<div style="margin-top:30px; padding:20px; background:white; border-radius:10px;">
-  <h2>👥 Znajomi</h2>
 
-  <input id="friendEmail" type="email" placeholder="Email użytkownika">
-  <button id="addFriendBtn">Dodaj znajomego</button>
-
-  <div id="friendsList" style="margin-top:15px;"></div>
-
-  <hr style="margin:25px 0;">
-
-  <h2>💬 Prywatne wiadomości</h2>
-
-  <div id="messagesList"></div>
-
-  <input id="messageText" type="text" placeholder="Napisz wiadomość...">
-  <button id="sendMessageBtn">Wyślij</button>
-</div>
 </body>
 </html>
