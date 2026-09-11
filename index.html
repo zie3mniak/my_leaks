@@ -1,640 +1,447 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyLeaks</title>
 
-<title>MyLeaks</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f0f2f5;
-    color: #1c1e21;
-}
-
-/* ===== GÓRNY PASEK ===== */
-
-header {
-    height: 60px;
-    background: #1877f2;
-    color: white;
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
-}
-
-.logo {
-    font-size: 27px;
-    font-weight: bold;
-    margin-right: 30px;
-}
-
-.search {
-    background: rgba(255,255,255,.2);
-    border: none;
-    outline: none;
-    color: white;
-    padding: 11px 16px;
-    border-radius: 22px;
-    width: 280px;
-}
-
-.search::placeholder {
-    color: #eee;
-}
-
-.nav {
-    margin-left: auto;
-    display: flex;
-    gap: 10px;
-}
-
-.nav button {
-    border: none;
-    background: rgba(255,255,255,.15);
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.nav button:hover {
-    background: rgba(255,255,255,.28);
-}
-
-/* ===== UKŁAD ===== */
-
-.container {
-    max-width: 1200px;
-    margin: 25px auto;
-    display: grid;
-    grid-template-columns: 240px 1fr 250px;
-    gap: 20px;
-}
-
-/* ===== LEWY PANEL ===== */
-
-.sidebar,
-.rightbar {
-    background: white;
-    border-radius: 12px;
-    padding: 18px;
-    height: fit-content;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-}
-
-.profile-mini {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 12px;
-}
-
-.avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: #1877f2;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.sidebar-item {
-    padding: 13px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.sidebar-item:hover {
-    background: #f0f2f5;
-}
-
-/* ===== POSTY ===== */
-
-.create-post {
-    background: white;
-    padding: 18px;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-    margin-bottom: 20px;
-}
-
-.create-top {
-    display: flex;
-    gap: 12px;
-}
-
-textarea {
-    width: 100%;
-    resize: none;
-    border: none;
-    outline: none;
-    background: #f0f2f5;
-    border-radius: 20px;
-    padding: 13px 17px;
-    font-size: 15px;
-}
-
-.post-button {
-    margin-top: 12px;
-    width: 100%;
-    background: #1877f2;
-    border: none;
-    color: white;
-    padding: 11px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.post-button:hover {
-    background: #166fe5;
-}
-
-.post {
-    background: white;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    padding: 18px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-
-.post-user {
-    font-weight: bold;
-}
-
-.post-time {
-    color: #65676b;
-    font-size: 12px;
-    margin-top: 3px;
-}
-
-.post-text {
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 15px;
-}
-
-.post-actions {
-    display: flex;
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-    gap: 8px;
-}
-
-.action {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 15px;
-}
-
-.action:hover {
-    background: #f0f2f5;
-}
-
-.liked {
-    color: #1877f2;
-    font-weight: bold;
-}
-
-.comment-box {
-    display: none;
-    margin-top: 12px;
-}
-
-.comment-box input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    outline: none;
-}
-
-.comments {
-    margin-top: 10px;
-}
-
-.comment {
-    background: #f0f2f5;
-    padding: 8px 12px;
-    border-radius: 15px;
-    margin-top: 6px;
-    font-size: 14px;
-}
-
-/* ===== PRAWA STRONA ===== */
-
-.rightbar h3 {
-    margin-bottom: 15px;
-}
-
-.friend {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 0;
-}
-
-.online {
-    width: 10px;
-    height: 10px;
-    background: #31a24c;
-    border-radius: 50%;
-    margin-left: auto;
-}
-
-/* ===== RESPONSIVE ===== */
-
-@media(max-width: 900px) {
-    .container {
-        grid-template-columns: 200px 1fr;
-        padding: 0 12px;
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    .rightbar {
-        display: none;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      color: #222;
     }
-}
 
-@media(max-width: 650px) {
     header {
-        padding: 0 12px;
-    }
-
-    .logo {
-        margin-right: 10px;
-    }
-
-    .search {
-        width: 140px;
-    }
-
-    .nav button {
-        display: none;
+      background: #1877f2;
+      color: white;
+      padding: 15px 20px;
+      font-size: 25px;
+      font-weight: bold;
     }
 
     .container {
-        display: block;
-        margin-top: 12px;
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 15px;
     }
 
-    .sidebar {
-        display: none;
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px #0001;
     }
-}
-</style>
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      background: #1877f2;
+      color: white;
+      border: 0;
+      padding: 11px 18px;
+      border-radius: 7px;
+      cursor: pointer;
+      margin: 5px 3px 5px 0;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #0d65d9;
+    }
+
+    .logout {
+      background: #555;
+    }
+
+    .post {
+      background: white;
+      padding: 18px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px #0001;
+    }
+
+    .post-date {
+      color: #777;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    #status {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
-
-    <div class="logo">MyLeaks</div>
-
-    <input
-        class="search"
-        type="text"
-        placeholder="Szukaj..."
-        oninput="searchPosts(this.value)"
-    >
-
-    <div class="nav">
-        <button onclick="scrollToTop()">🏠 Strona główna</button>
-        <button onclick="alert('Profil użytkownika')">👤 Profil</button>
-    </div>
-
+  MyLeaks
 </header>
-
 
 <div class="container">
 
-    <!-- LEWY PANEL -->
+  <!-- LOGOWANIE -->
+  <div class="box" id="authBox">
+    <h2>Logowanie</h2>
 
-    <aside class="sidebar">
+    <input
+      type="email"
+      id="email"
+      placeholder="Email"
+    >
 
-        <div class="profile-mini">
-            <div class="avatar">M</div>
+    <input
+      type="password"
+      id="password"
+      placeholder="Hasło"
+    >
 
-            <div>
-                <b>Użytkownik</b>
-                <small>Twój profil</small>
-            </div>
-        </div>
+    <button onclick="login()">Zaloguj się</button>
+    <button onclick="register()">Załóż konto</button>
 
-        <div class="sidebar-item">🏠 Aktualności</div>
-        <div class="sidebar-item">👥 Znajomi</div>
-        <div class="sidebar-item">💬 Wiadomości</div>
-        <div class="sidebar-item">🔔 Powiadomienia</div>
-        <div class="sidebar-item">⚙️ Ustawienia</div>
+    <div id="status"></div>
+  </div>
 
-    </aside>
+  <!-- PANEL UŻYTKOWNIKA -->
+  <div class="box hidden" id="userBox">
+    <h2>Witaj! 👋</h2>
 
+    <p id="userEmail"></p>
 
-    <!-- GŁÓWNA CZĘŚĆ -->
+    <button class="logout" onclick="logout()">Wyloguj się</button>
+  </div>
 
-    <main>
+  <!-- DODAWANIE POSTA -->
+  <div class="box hidden" id="postBox">
+    <h2>Dodaj post</h2>
 
-        <section class="create-post">
+    <textarea
+      id="postContent"
+      placeholder="Co chcesz napisać?"
+    ></textarea>
 
-            <div class="create-top">
+    <button onclick="addPost()">Opublikuj</button>
+  </div>
 
-                <div class="avatar">M</div>
+  <!-- POSTY -->
+  <h2>Posty</h2>
 
-                <textarea
-                    id="postText"
-                    rows="2"
-                    placeholder="O czym teraz myślisz?"
-                ></textarea>
-
-            </div>
-
-            <button class="post-button" onclick="addPost()">
-                Opublikuj
-            </button>
-
-        </section>
-
-
-        <section id="posts"></section>
-
-    </main>
-
-
-    <!-- PRAWY PANEL -->
-
-    <aside class="rightbar">
-
-        <h3>Znajomi online</h3>
-
-        <div class="friend">
-            <div class="avatar">K</div>
-            <span>Kamil</span>
-            <div class="online"></div>
-        </div>
-
-        <div class="friend">
-            <div class="avatar">A</div>
-            <span>Adam</span>
-            <div class="online"></div>
-        </div>
-
-        <div class="friend">
-            <div class="avatar">M</div>
-            <span>Michał</span>
-            <div class="online"></div>
-        </div>
-
-    </aside>
+  <div id="posts">
+    Ładowanie postów...
+  </div>
 
 </div>
 
-
 <script>
+  // ==============================
+  // SUPABASE
+  // ==============================
 
-let posts = JSON.parse(localStorage.getItem("myleaks_posts")) || [
-    {
-        user: "MyLeaks",
-        text: "Witaj na MyLeaks! 🎉 To jest pierwszy post.",
-        likes: 3,
-        liked: false,
-        comments: []
-    }
-];
+  const SUPABASE_URL =
+    "https://wenzjyhwntdiytgjgpkp.supabase.co";
 
+  const SUPABASE_KEY =
+    "sb_publishable_EYRZ9-Ynliw6rF1R_QQZ6g_KgHl_p_D";
 
-function savePosts() {
-    localStorage.setItem("myleaks_posts", JSON.stringify(posts));
-}
-
-
-function displayPosts(list = posts) {
-
-    const container = document.getElementById("posts");
-
-    container.innerHTML = "";
-
-    list.forEach((post, index) => {
-
-        const article = document.createElement("article");
-
-        article.className = "post";
-
-        article.innerHTML = `
-
-            <div class="post-header">
-
-                <div class="avatar">
-                    ${post.user.charAt(0)}
-                </div>
-
-                <div>
-                    <div class="post-user">${post.user}</div>
-                    <div class="post-time">teraz</div>
-                </div>
-
-            </div>
-
-            <div class="post-text">
-                ${escapeHTML(post.text)}
-            </div>
-
-            <div class="post-actions">
-
-                <button
-                    class="action ${post.liked ? "liked" : ""}"
-                    onclick="likePost(${index})"
-                >
-                    👍 Lubię to (${post.likes})
-                </button>
-
-                <button
-                    class="action"
-                    onclick="toggleComments(${index})"
-                >
-                    💬 Komentarze
-                </button>
-
-            </div>
-
-            <div
-                class="comment-box"
-                id="commentBox${index}"
-            >
-
-                <input
-                    type="text"
-                    id="commentInput${index}"
-                    placeholder="Napisz komentarz..."
-                    onkeydown="commentKey(event, ${index})"
-                >
-
-            </div>
-
-            <div
-                class="comments"
-                id="comments${index}"
-            >
-                ${renderComments(post.comments)}
-            </div>
-        `;
-
-        container.appendChild(article);
-    });
-}
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
 
-function renderComments(comments) {
+  // ==============================
+  // STATUS
+  // ==============================
 
-    return comments.map(comment => `
-        <div class="comment">
-            <b>Użytkownik:</b> ${escapeHTML(comment)}
-        </div>
-    `).join("");
-}
+  function showStatus(message) {
+    document.getElementById("status").textContent = message;
+  }
 
 
-function addPost() {
+  // ==============================
+  // REJESTRACJA
+  // ==============================
 
-    const input = document.getElementById("postText");
+  async function register() {
 
-    const text = input.value.trim();
+    const email =
+      document.getElementById("email").value.trim();
 
-    if (!text) {
-        alert("Napisz coś przed opublikowaniem 🙂");
-        return;
+    const password =
+      document.getElementById("password").value;
+
+    if (!email || !password) {
+      showStatus("Wpisz email i hasło.");
+      return;
     }
 
-    posts.unshift({
-        user: "Użytkownik",
-        text: text,
-        likes: 0,
-        liked: false,
-        comments: []
-    });
+    if (password.length < 6) {
+      showStatus("Hasło musi mieć minimum 6 znaków.");
+      return;
+    }
 
-    input.value = "";
+    showStatus("Tworzenie konta...");
 
-    savePosts();
+    const { data, error } =
+      await supabaseClient.auth.signUp({
+        email: email,
+        password: password
+      });
 
-    displayPosts();
-}
+    if (error) {
+      showStatus("Błąd: " + error.message);
+      return;
+    }
+
+    showStatus(
+      "Konto utworzone! Jeśli trzeba, sprawdź email i potwierdź konto."
+    );
+  }
 
 
-function likePost(index) {
+  // ==============================
+  // LOGOWANIE
+  // ==============================
 
-    if (posts[index].liked) {
+  async function login() {
 
-        posts[index].likes--;
-        posts[index].liked = false;
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    if (!email || !password) {
+      showStatus("Wpisz email i hasło.");
+      return;
+    }
+
+    showStatus("Logowanie...");
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      showStatus("Błąd logowania: " + error.message);
+      return;
+    }
+
+    showStatus("Zalogowano!");
+    updateUI(data.user);
+  }
+
+
+  // ==============================
+  // WYLOGOWANIE
+  // ==============================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    updateUI(null);
+  }
+
+
+  // ==============================
+  // INTERFEJS
+  // ==============================
+
+  function updateUI(user) {
+
+    const authBox =
+      document.getElementById("authBox");
+
+    const userBox =
+      document.getElementById("userBox");
+
+    const postBox =
+      document.getElementById("postBox");
+
+    const userEmail =
+      document.getElementById("userEmail");
+
+    if (user) {
+
+      authBox.classList.add("hidden");
+      userBox.classList.remove("hidden");
+      postBox.classList.remove("hidden");
+
+      userEmail.textContent =
+        "Zalogowany jako: " + user.email;
 
     } else {
 
-        posts[index].likes++;
-        posts[index].liked = true;
+      authBox.classList.remove("hidden");
+      userBox.classList.add("hidden");
+      postBox.classList.add("hidden");
 
+      userEmail.textContent = "";
+    }
+  }
+
+
+  // ==============================
+  // DODAWANIE POSTA
+  // ==============================
+
+  async function addPost() {
+
+    const content =
+      document.getElementById("postContent").value.trim();
+
+    if (!content) {
+      alert("Napisz coś przed opublikowaniem.");
+      return;
     }
 
-    savePosts();
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
 
-    displayPosts();
-}
+    if (!user) {
+      alert("Musisz być zalogowany.");
+      return;
+    }
 
+    const { error } =
+      await supabaseClient
+        .from("posts")
+        .insert({
+          content: content
+        });
 
-function toggleComments(index) {
+    if (error) {
+      alert("Nie udało się dodać posta: " + error.message);
+      return;
+    }
 
-    const box = document.getElementById("commentBox" + index);
+    document.getElementById("postContent").value = "";
 
-    box.style.display =
-        box.style.display === "block"
-        ? "none"
-        : "block";
-}
-
-
-function commentKey(event, index) {
-
-    if (event.key !== "Enter") return;
-
-    const input = document.getElementById(
-        "commentInput" + index
-    );
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    posts[index].comments.push(text);
-
-    input.value = "";
-
-    savePosts();
-
-    displayPosts();
-}
+    loadPosts();
+  }
 
 
-function searchPosts(query) {
+  // ==============================
+  // POBIERANIE POSTÓW
+  // ==============================
 
-    query = query.toLowerCase();
+  async function loadPosts() {
 
-    const filtered = posts.filter(post =>
-        post.text.toLowerCase().includes(query) ||
-        post.user.toLowerCase().includes(query)
-    );
+    const postsElement =
+      document.getElementById("posts");
 
-    displayPosts(filtered);
-}
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("posts")
+      .select("id, content, created_at")
+      .order("created_at", {
+        ascending: false
+      });
 
+    if (error) {
+      postsElement.textContent =
+        "Nie udało się załadować postów.";
+      console.error(error);
+      return;
+    }
 
-function scrollToTop() {
+    if (!data || data.length === 0) {
+      postsElement.textContent =
+        "Nie ma jeszcze żadnych postów.";
+      return;
+    }
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+    postsElement.innerHTML = "";
+
+    data.forEach(post => {
+
+      const postElement =
+        document.createElement("div");
+
+      postElement.className = "post";
+
+      const date =
+        new Date(post.created_at)
+          .toLocaleString("pl-PL");
+
+      const dateElement =
+        document.createElement("div");
+
+      dateElement.className = "post-date";
+      dateElement.textContent = date;
+
+      const contentElement =
+        document.createElement("div");
+
+      contentElement.textContent =
+        post.content;
+
+      postElement.appendChild(dateElement);
+      postElement.appendChild(contentElement);
+
+      postsElement.appendChild(postElement);
     });
-
-}
-
-
-function escapeHTML(text) {
-
-    const div = document.createElement("div");
-
-    div.textContent = text;
-
-    return div.innerHTML;
-}
+  }
 
 
-displayPosts();
+  // ==============================
+  // SPRAWDZENIE SESJI
+  // ==============================
+
+  async function checkUser() {
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    updateUI(user);
+  }
+
+
+  // ==============================
+  // START
+  // ==============================
+
+  checkUser();
+  loadPosts();
 
 </script>
 
